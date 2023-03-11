@@ -5,8 +5,8 @@ const date = new Date();
 date.setDate(date.getDate() - 1);
 const yesterday = date.toISOString().substring(0,10)
 
-const username = 'swmcc'
-const token = 'XXXXXXX'
+const username = process.env.GITHUB_USERNAME
+const token = process.env.GITHUB_TOKEN
 
 const client = new GraphQLClient('https://api.github.com/graphql', {
   headers: {
