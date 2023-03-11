@@ -49,20 +49,22 @@ const query = `
 async function getCommitsAndPRs() {
   const data = await client.request(query)
   const repos = data.viewer.repositories.nodes
+  let commits = {}
+  let prs = {}
 
   for (const repo of repos) {
-    console.log(`Commits for ${repo.name}:`);
     for (const commit of repo.defaultBranchRef.target.history.nodes) {
-      console.log(`  ${commit.oid} ${commit.message}`);
+      commits[repo.name] = { ...commits[repo.name], [commit.oid]: commit.message}
     }
 
-    console.log(`Pull requests for ${repo.name}:`);
     for (const pr of repo.pullRequests.nodes) {
       if (pr.mergedAt && pr.mergedAt.slice(0, 10) === yesterday) {
-        console.log(`  #${pr.number} ${pr.title}`);
+        prs[repo.name] = { ...prs[repo.name], [pr.number]: pr.title}
       }
     }
   }
+  console.log(commits)
+  console.log(prs)
 }
 
 getCommitsAndPRs();
