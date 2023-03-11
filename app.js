@@ -1,8 +1,9 @@
 import fetch from 'node-fetch'
 import { GraphQLClient } from 'graphql-request'
 
-const date = new Date(new Date().getTime() - 24 * 60 * 60 * 1000)
-const yesterday = date.toISOString().slice(0, 10)
+const date = new Date();
+date.setDate(date.getDate() - 1);
+const yesterday = date.toISOString().substring(0,10)
 
 const username = 'swmcc'
 const token = 'XXXXXXX'
