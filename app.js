@@ -1,12 +1,14 @@
 import fetch from 'node-fetch'
 import { GraphQLClient } from 'graphql-request'
 
-const date = new Date();
-date.setDate(date.getDate() - 1);
-const yesterday = date.toISOString().substring(0,10)
-
-const username = process.env.GITHUB_USERNAME
 const token = process.env.GITHUB_TOKEN
+const yesterday = getYesterdaysDate()
+
+function getYesterdaysDate() {
+  const date = new Date()
+  date.setDate(date.getDate() - 1);
+  return date.toISOString().substring(0, 10)
+}
 
 const client = new GraphQLClient('https://api.github.com/graphql', {
   headers: {
@@ -15,7 +17,7 @@ const client = new GraphQLClient('https://api.github.com/graphql', {
 })
 
 const query = `
-  query {
+  query GetCommits {
     viewer {
       repositories(first: 100) {
         nodes {
@@ -28,16 +30,10 @@ const query = `
                   nodes {
                     oid
                     message
+                    committedDate
                   }
                 }
               }
-            }
-          }
-          pullRequests(first: 100, states: [MERGED], orderBy: {field: CREATED_AT, direction: DESC}) {
-            nodes {
-              number
-              title
-              mergedAt
             }
           }
         }
@@ -46,26 +42,18 @@ const query = `
   }
 `
 
-async function getCommitsAndPRs() {
+async function getCommits() {
   const data = await client.request(query)
   const repos = data.viewer.repositories.nodes
   let commits = {}
-  let prs = {}
 
   for (const repo of repos) {
     for (const commit of repo.defaultBranchRef.target.history.nodes) {
-      commits[repo.name] = { ...commits[repo.name], [commit.oid]: commit.message}
-    }
-
-    for (const pr of repo.pullRequests.nodes) {
-      if (pr.mergedAt && pr.mergedAt.slice(0, 10) === yesterday) {
-        prs[repo.name] = { ...prs[repo.name], [pr.number]: pr.title}
-      }
+      commits[repo.name] = { ...commits[repo.name], [commit.oid]: { message: commit.message, date: commit.committedDate } }
     }
   }
+  console.log(yesterday)
   console.log(commits)
-  console.log(prs)
 }
 
-getCommitsAndPRs();
-
+getCommits();
