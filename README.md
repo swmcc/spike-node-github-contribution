@@ -22,7 +22,6 @@ to the changelog app.
 ## Development Info
 
 ```
-export GITHUB_USERNAME=XXXXX
 export GITHUB_TOKEN=XXXxxXX
 npm install
 node app.js

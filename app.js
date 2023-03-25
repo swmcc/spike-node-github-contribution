@@ -1,14 +1,23 @@
-import fetch from 'node-fetch'
 import { GraphQLClient } from 'graphql-request'
 
-const token = process.env.GITHUB_TOKEN
-const yesterday = getYesterdaysDate()
-
-function getYesterdaysDate() {
-  const date = new Date()
-  date.setDate(date.getDate() - 1);
-  return date.toISOString().substring(0, 10)
+if (!process.env.GITHUB_TOKEN) {
+  console.error(`Environment variable 'GITHUB_TOKEN' is not set. Exiting the script.`);
+  process.exit(1);
 }
+const token = process.env.GITHUB_TOKEN
+
+let number_of_days =  1
+if (process.argv.length >= 3) {
+  number_of_days = process.argv[2]
+  if (!isInteger(number_of_days)) {
+    console.error('Error: The provided argument must be an integer.');
+    process.exit(1);
+  }
+} 
+
+const date = new Date()
+date.setDate(date.getDate() - number_of_days);
+const start_date = date.toISOString().substring(0, 10)
 
 const client = new GraphQLClient('https://api.github.com/graphql', {
   headers: {
@@ -26,7 +35,7 @@ const query = `
             name
             target {
               ... on Commit {
-                history(since: "${yesterday}T00:00:00Z") {
+                history(since: "${start_date}T00:00:00Z") {
                   nodes {
                     oid
                     message
@@ -42,6 +51,10 @@ const query = `
   }
 `
 
+function isInteger(value) {
+  return Number.isInteger(Number(value));
+}
+
 async function getCommits() {
   const data = await client.request(query)
   const repos = data.viewer.repositories.nodes
@@ -52,7 +65,7 @@ async function getCommits() {
       commits[repo.name] = { ...commits[repo.name], [commit.oid]: { message: commit.message, date: commit.committedDate } }
     }
   }
-  console.log(yesterday)
+  console.log(start_date)
   console.log(commits)
 }
 
