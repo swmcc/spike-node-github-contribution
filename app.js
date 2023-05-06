@@ -1,15 +1,25 @@
 import { GraphQLClient } from 'graphql-request'
 import axios from 'axios'
 
-const baseURL = 'http://localhost:3000';
-const username = 'me@swm.cc';
-const password = 'pass5577';
+const baseURL = 'https://pulp.swm.cc/api/v1/commits';
 
 if (!process.env.GITHUB_TOKEN) {
   console.error(`Environment variable 'GITHUB_TOKEN' is not set. Exiting the script.`);
   process.exit(1);
 }
 const token = process.env.GITHUB_TOKEN
+
+if (!process.env.PULP_USERNAME) {
+  console.error(`Environment variable 'PULP_USERNAME' is not set. Exiting the script.`);
+  process.exit(1);
+}
+const username = process.env.PULP_USERNAME
+
+if (!process.env.PULP_PASSWORD) {
+  console.error(`Environment variable 'PULP_PASSWORD' is not set. Exiting the script.`);
+  process.exit(1);
+}
+const password = process.env.PULP_PASSWORD
 
 let number_of_days = 1
 if (process.argv.length >= 3) {
@@ -80,7 +90,6 @@ async function getandPostCommits(token) {
   const data = await client.request(query)
   const repos = data.viewer.repositories.nodes
 
-  console.log(token)
   for (const repo of repos) {
     for (const commit of repo.defaultBranchRef.target.history.nodes) {
       let jsonPayload = {
