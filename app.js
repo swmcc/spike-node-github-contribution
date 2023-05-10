@@ -1,7 +1,7 @@
 import { GraphQLClient } from 'graphql-request'
 import axios from 'axios'
 
-const baseURL = 'https://pulp.swm.cc/api/v1/commits';
+const baseURL = 'https://pulp.swm.cc/';
 
 if (!process.env.GITHUB_TOKEN) {
   console.error(`Environment variable 'GITHUB_TOKEN' is not set. Exiting the script.`);
